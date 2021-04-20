@@ -36,6 +36,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
@@ -44,6 +45,7 @@ import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Region.Op;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build.VERSION;
@@ -301,6 +303,7 @@ abstract class BaseSlider<
   private double lastPosition = valueFrom;
 
   @NonNull private final MaterialShapeDrawable thumbDrawable = new MaterialShapeDrawable();
+
 
   private float touchPosition;
   @SeparationUnit private int separationUnit = UNIT_PX;
@@ -1677,11 +1680,22 @@ abstract class BaseSlider<
     // Clear out the track behind the thumb if we're in a disable state since the thumb is
     // transparent.
     if (!isEnabled()) {
+      Rect srcRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
+      Bitmap cloudBitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.material_ic_calendar_black_24dp)).getBitmap();
       for (Float value : values) {
-        canvas.drawCircle(
-            trackSidePadding + normalizeValue(value) * width, top, thumbRadius, thumbPaint);
+        canvas.drawCircle(trackSidePadding + normalizeValue(value) * width, top, thumbRadius, thumbPaint);
+
+        Rect dstRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
+        canvas.drawBitmap(cloudBitmap, srcRect , dstRect , thumbPaint);
       }
+
+
+
+
+
     }
+
+
 
     for (Float value : values) {
       canvas.save();
