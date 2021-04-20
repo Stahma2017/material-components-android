@@ -1884,17 +1884,14 @@ abstract class BaseSlider<
     }
 
 
-
     Log.d("TEST34", "closestPosition=" + closestPosition);
-
-    lastPosition = correctSnapValue(closestPosition);
-    Log.d("TEST34", "correctedValue=" + lastPosition);
-    return lastPosition;
+    lastPosition = closestPosition;
+    return closestPosition;
   }
 
-  private double correctSnapValue(double value) {
+  private float correctSnapValue(float value) {
     if (allPossibleValues.isEmpty()) return value;
-    double correctValue = Double.MAX_VALUE;
+    float correctValue = Float.MAX_VALUE;
     for (float x: allPossibleValues) {
       if (abs(value - x) < abs(value - correctValue)) {
         correctValue = x;
@@ -2028,8 +2025,11 @@ abstract class BaseSlider<
       position = 1 - position;
     }
     float res = (float) (position * (valueTo - valueFrom) + valueFrom);
+
     Log.d("TEST34", "getValueOfTouchPosition() =    (float) (position * (valueTo - valueFrom) + valueFrom  ||  " + "(float) (" + position + " * (" + valueTo + " - " + valueFrom + ") + " + valueFrom + "    = " + res);
-    return (float) (position * (valueTo - valueFrom) + valueFrom);
+    float correctedRes = correctSnapValue(res);
+    Log.d("TEST34", "corrected = " + correctedRes);
+    return correctedRes;
   }
 
   private float valueToX(float value) {
