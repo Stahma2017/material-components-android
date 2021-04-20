@@ -94,8 +94,10 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -241,6 +243,9 @@ abstract class BaseSlider<
   @NonNull private final List<TooltipDrawable> labels = new ArrayList<>();
   @NonNull private final List<L> changeListeners = new ArrayList<>();
   @NonNull private final List<T> touchListeners = new ArrayList<>();
+
+
+  @NonNull private Set<Float> allPossibleValues = new HashSet<Float>();
 
   @NonNull private final List<Slider.StepSize> stepSizes = new ArrayList<>();
 
@@ -808,6 +813,22 @@ abstract class BaseSlider<
   public void setStepSizes(List<Slider.StepSize> list) {
     stepSizes.clear();
     stepSizes.addAll(list);
+    calculateAllPossibleValues(list);
+  }
+
+  private void calculateAllPossibleValues(List<Slider.StepSize> list) {
+    Set<Float> hashSet = new HashSet<Float>();
+    for (Slider.StepSize step : list) {
+      hashSet.add(step.maxValueOfRange);
+      float i = step.minValueOfRange;
+      do {
+        hashSet.add(i);
+        i = i + step.stepSize;
+      }
+      while (i < step.maxValueOfRange);
+    }
+
+    allPossibleValues = hashSet;
   }
 
   public List<Slider.StepSize> getStepSizes() {
@@ -1865,8 +1886,21 @@ abstract class BaseSlider<
 
 
     Log.d("TEST34", "closestPosition=" + closestPosition);
-    lastPosition = closestPosition;
-    return closestPosition;
+
+    lastPosition = correctSnapValue(closestPosition);
+    Log.d("TEST34", "correctedValue=" + lastPosition);
+    return lastPosition;
+  }
+
+  private double correctSnapValue(double value) {
+    if (allPossibleValues.isEmpty()) return value;
+    double correctValue = Double.MAX_VALUE;
+    for (float x: allPossibleValues) {
+      if (abs(value - x) < abs(value - correctValue)) {
+        correctValue = x;
+      }
+    }
+    return correctValue;
   }
 
   /**
