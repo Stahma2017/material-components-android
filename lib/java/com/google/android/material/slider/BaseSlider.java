@@ -1680,13 +1680,11 @@ abstract class BaseSlider<
     // Clear out the track behind the thumb if we're in a disable state since the thumb is
     // transparent.
     if (!isEnabled()) {
-      Rect srcRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
-      Bitmap cloudBitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.material_ic_calendar_black_24dp)).getBitmap();
+
       for (Float value : values) {
         canvas.drawCircle(trackSidePadding + normalizeValue(value) * width, top, thumbRadius, thumbPaint);
 
-        Rect dstRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
-        canvas.drawBitmap(cloudBitmap, srcRect , dstRect , thumbPaint);
+
       }
 
 
@@ -1696,6 +1694,8 @@ abstract class BaseSlider<
     }
 
 
+    Rect srcRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
+    Bitmap cloudBitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.material_ic_calendar_black_24dp)).getBitmap();
 
     for (Float value : values) {
       canvas.save();
@@ -1703,7 +1703,13 @@ abstract class BaseSlider<
           trackSidePadding + (int) (normalizeValue(value) * width) - thumbRadius,
           top - thumbRadius);
       thumbDrawable.draw(canvas);
+
+      Rect dstRect = new Rect(0, 0, 2 *thumbRadius, 2 *thumbRadius);
+      canvas.drawBitmap(cloudBitmap, srcRect , dstRect , thumbPaint);
+
       canvas.restore();
+
+
     }
   }
 
