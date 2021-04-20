@@ -96,6 +96,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The slider can function either as a continuous slider, or as a discrete slider. The mode of
@@ -188,9 +189,9 @@ import java.util.List;
  * @attr ref com.google.android.material.R.styleable#Slider_trackHeight
  */
 abstract class BaseSlider<
-        S extends BaseSlider<S, L, T>,
-        L extends BaseOnChangeListener<S>,
-        T extends BaseOnSliderTouchListener<S>>
+    S extends BaseSlider<S, L, T>,
+    L extends BaseOnChangeListener<S>,
+    T extends BaseOnSliderTouchListener<S>>
     extends View {
 
   private static final String TAG = BaseSlider.class.getSimpleName();
@@ -241,6 +242,8 @@ abstract class BaseSlider<
   @NonNull private final List<L> changeListeners = new ArrayList<>();
   @NonNull private final List<T> touchListeners = new ArrayList<>();
 
+  @NonNull private final List<Slider.StepSize> stepSizes = new ArrayList<>();
+
   // Whether the labels are showing or in the process of animating in.
   private boolean labelsAreAnimatedIn = false;
   private ValueAnimator labelsInAnimator;
@@ -265,6 +268,9 @@ abstract class BaseSlider<
   private boolean thumbIsPressed = false;
   private float valueFrom;
   private float valueTo;
+
+  private boolean valueFromInitialised;
+  private boolean valueToInitialised;
   // Holds the values set to this slider. We keep this array sorted in order to check if the value
   // has been changed when a new value is set and to find the minimum and maximum values.
   private ArrayList<Float> values = new ArrayList<>();
@@ -285,6 +291,9 @@ abstract class BaseSlider<
   @NonNull private ColorStateList tickColorInactive;
   @NonNull private ColorStateList trackColorActive;
   @NonNull private ColorStateList trackColorInactive;
+
+
+  private double lastPosition = valueFrom;
 
   @NonNull private final MaterialShapeDrawable thumbDrawable = new MaterialShapeDrawable();
 
@@ -400,9 +409,9 @@ abstract class BaseSlider<
     TypedArray a =
         ThemeEnforcement.obtainStyledAttributes(
             context, attrs, R.styleable.Slider, defStyleAttr, DEF_STYLE_RES);
-    valueFrom = a.getFloat(R.styleable.Slider_android_valueFrom, 0.0f);
-    valueTo = a.getFloat(R.styleable.Slider_android_valueTo, 1.0f);
-    setValues(valueFrom);
+    /*valueFrom = a.getFloat(R.styleable.Slider_android_valueFrom, 0.0f);
+    valueTo = a.getFloat(R.styleable.Slider_android_valueTo, 1.0f);*/
+    // setValues(valueFrom);
     stepSize = a.getFloat(R.styleable.Slider_android_stepSize, 0.0f);
 
     boolean hasTrackColor = a.hasValue(R.styleable.Slider_trackColor);
@@ -418,14 +427,14 @@ abstract class BaseSlider<
         trackColorInactive != null
             ? trackColorInactive
             : AppCompatResources.getColorStateList(
-                context, R.color.material_slider_inactive_track_color));
+            context, R.color.material_slider_inactive_track_color));
     ColorStateList trackColorActive =
         MaterialResources.getColorStateList(context, a, trackColorActiveRes);
     setTrackActiveTintList(
         trackColorActive != null
             ? trackColorActive
             : AppCompatResources.getColorStateList(
-                context, R.color.material_slider_active_track_color));
+            context, R.color.material_slider_active_track_color));
     ColorStateList thumbColor =
         MaterialResources.getColorStateList(context, a, R.styleable.Slider_thumbColor);
     thumbDrawable.setFillColor(thumbColor);
@@ -455,14 +464,14 @@ abstract class BaseSlider<
         tickColorInactive != null
             ? tickColorInactive
             : AppCompatResources.getColorStateList(
-                context, R.color.material_slider_inactive_tick_marks_color));
+            context, R.color.material_slider_inactive_tick_marks_color));
     ColorStateList tickColorActive =
         MaterialResources.getColorStateList(context, a, tickColorActiveRes);
     setTickActiveTintList(
         tickColorActive != null
             ? tickColorActive
             : AppCompatResources.getColorStateList(
-                context, R.color.material_slider_active_tick_marks_color));
+            context, R.color.material_slider_active_tick_marks_color));
 
     setThumbRadius(a.getDimensionPixelSize(R.styleable.Slider_thumbRadius, 0));
     setHaloRadius(a.getDimensionPixelSize(R.styleable.Slider_haloRadius, 0));
@@ -499,6 +508,7 @@ abstract class BaseSlider<
   }
 
   private void validateValueFrom() {
+    if (!valueFromInitialised) return;
     if (valueFrom >= valueTo) {
       throw new IllegalStateException(
           String.format(
@@ -507,6 +517,7 @@ abstract class BaseSlider<
   }
 
   private void validateValueTo() {
+    if (!valueToInitialised) return;
     if (valueTo <= valueFrom) {
       throw new IllegalStateException(
           String.format(
@@ -539,6 +550,7 @@ abstract class BaseSlider<
   }
 
   private void validateValues() {
+    if (!valueFromInitialised || !valueToInitialised) return;
     for (Float value : values) {
       if (value < valueFrom || value > valueTo) {
         throw new IllegalStateException(
@@ -611,9 +623,12 @@ abstract class BaseSlider<
    * @attr ref com.google.android.material.R.styleable#Slider_android_valueFrom
    */
   public void setValueFrom(float valueFrom) {
+    setValues(valueFrom);
     this.valueFrom = valueFrom;
+    valueFromInitialised = true;
     dirtyConfig = true;
     postInvalidate();
+
   }
 
   /**
@@ -638,6 +653,7 @@ abstract class BaseSlider<
    */
   public void setValueTo(float valueTo) {
     this.valueTo = valueTo;
+    valueToInitialised = true;
     dirtyConfig = true;
     postInvalidate();
   }
@@ -788,6 +804,17 @@ abstract class BaseSlider<
       postInvalidate();
     }
   }
+
+  public void setStepSizes(List<Slider.StepSize> list) {
+    stepSizes.clear();
+    stepSizes.addAll(list);
+  }
+
+  public List<Slider.StepSize> getStepSizes() {
+    return stepSizes;
+  }
+
+
 
   /** Returns the index of the currently focused thumb */
   public int getFocusedThumbIndex() {
@@ -1498,6 +1525,7 @@ abstract class BaseSlider<
   }
 
   private void updateHaloHotspot() {
+    if (!valueFromInitialised || !valueToInitialised) return;
     // Set the hotspot as the halo if RippleDrawable is being used.
     if (!shouldDrawCompatHalo() && getMeasuredWidth() > 0) {
       final Drawable background = getBackground();
@@ -1517,6 +1545,7 @@ abstract class BaseSlider<
 
   @Override
   protected void onDraw(@NonNull Canvas canvas) {
+    if (!valueFromInitialised || !valueToInitialised) return;
     if (dirtyConfig) {
       validateConfigurationIfDirty();
 
@@ -1562,6 +1591,7 @@ abstract class BaseSlider<
   }
 
   private void drawInactiveTrack(@NonNull Canvas canvas, int width, int top) {
+    if (!valueFromInitialised || !valueToInitialised) return;
     float[] activeRange = getActiveRange();
     float right = trackSidePadding + activeRange[1] * width;
     if (right < trackSidePadding + width) {
@@ -1588,6 +1618,7 @@ abstract class BaseSlider<
   }
 
   private void drawActiveTrack(@NonNull Canvas canvas, int width, int top) {
+    if (!valueFromInitialised || !valueToInitialised) return;
     float[] activeRange = getActiveRange();
     float right = trackSidePadding + activeRange[1] * width;
     float left = trackSidePadding + activeRange[0] * width;
@@ -1760,13 +1791,82 @@ abstract class BaseSlider<
     return Math.round(position * (coordinates.length / 2 - 1));
   }
 
-  private double snapPosition(float position) {
+  private double snapPositionLog(float position) {
+    Log.d("TEST24", "\n \n \n \n \n");
+    Log.d("TEST24", "touchPosition = " + position);
     if (stepSize > 0.0f) {
+      int stepCount = (int) ((valueTo - valueFrom) / stepSize);
+      Log.d("TEST24", "stepCount = (int) (valueTo - valueFrom) / stepSize  || (" + valueTo + " - " + valueFrom + ") / "+ stepSize + "   = " + stepCount);
+      double res = Math.round(position * stepCount) / (double) stepCount;
+      Log.d("TEST24", "rounded result = Math.round(position * stepCount) / (double) stepCount   |||  " +
+          "Math.round(" + position + " * " + stepCount + ") / (double) " + stepCount + "   || " + Math.round(position * stepCount) + " / (double) " + stepCount + "    = " + res);
+      return res;
+    }
+
+    return position;
+  }
+
+
+  private double snapPosition(float position) {
+    if (!stepSizes.isEmpty()) {
+      return snapPosition2(position);
+    }
+    else if (stepSize > 0.0f) {
       int stepCount = (int) ((valueTo - valueFrom) / stepSize);
       return Math.round(position * stepCount) / (double) stepCount;
     }
 
     return position;
+  }
+
+  private double snapPosition2(float position) {
+    Log.d("TEST34", "\n \n \n \n \n");
+
+    if (stepSizes.isEmpty()) return position;
+    List<Double> snappedPositions = new ArrayList<>();
+
+    //todo не покрыт кейс, когда позиция в слепом рэнже
+
+    // подсчитали все соседние возможные snap positions в подхоядщих рэнжах
+    for (int i = 0; i < stepSizes.size(); i++) {
+      Slider.StepSize step = stepSizes.get(i);
+
+      Float positionValue = (position * (valueTo - valueFrom)) + valueFrom;
+
+      if (positionValue >= step.minValueOfRange && positionValue <= step.maxValueOfRange) {
+        Log.d("TEST34", "range:   " + step.minValueOfRange +" <= " + positionValue + " <= " + step.maxValueOfRange);
+
+        int stepCount = (int) ((step.maxValueOfRange - step.minValueOfRange) / step.stepSize);
+        Log.d("TEST34", "stepCount = (int) (step.maxValueOfRange - step.minValueOfRange) / step.stepSize  || (" + step.maxValueOfRange + " - " + step.minValueOfRange + ") / "+ step.stepSize + "   = " + stepCount);
+
+        float localPosition = (positionValue - valueFrom) / (step.maxValueOfRange - step.minValueOfRange);
+        Log.d("TEST34", "localPosition= positionValue / (step.maxValueOfRange - step.minValueOfRange)  ||  " + positionValue + " / (" + step.maxValueOfRange + " - " +  step.minValueOfRange + ")" +  "   = " + localPosition);
+
+        Double snapPosition = Math.round(localPosition * stepCount) / (double) stepCount;
+        Log.d("TEST34", "snapPosition= " + snapPosition);
+
+        Double globalSnapPosition = (snapPosition * (step.maxValueOfRange - step.minValueOfRange))/(valueTo - valueFrom);
+        Log.d("TEST34", "global snapPosition = " + globalSnapPosition);
+        snappedPositions.add(globalSnapPosition);
+      }
+    }
+
+    Log.d("TEST34", "snapped Positions = " + snappedPositions);
+
+    if (snappedPositions.isEmpty()) return lastPosition;
+
+    double closestPosition = snappedPositions.get(0);
+    for (int i = 0; i < snappedPositions.size(); i++) {
+      if (abs(snappedPositions.get(i) - position) < closestPosition) {
+        closestPosition = snappedPositions.get(i);
+      }
+    }
+
+
+
+    Log.d("TEST34", "closestPosition=" + closestPosition);
+    lastPosition = closestPosition;
+    return closestPosition;
   }
 
   /**
@@ -1831,10 +1931,12 @@ abstract class BaseSlider<
    * @return true, if {@code #thumbPosition is updated}; false, otherwise.
    */
   private boolean snapTouchPosition() {
+    Log.d("TEST14", "getValueOfTouchPosition() = " + getValueOfTouchPosition());
     return snapActiveThumbToValue(getValueOfTouchPosition());
   }
 
   private boolean snapActiveThumbToValue(float value) {
+    Log.d("TEST14", "activeThumbIdx = " + activeThumbIdx);
     return snapThumbToValue(activeThumbIdx, value);
   }
 
@@ -1844,8 +1946,11 @@ abstract class BaseSlider<
       return false;
     }
 
+    Log.d("TEST14", "value = " + value);
     float newValue = getClampedValue(idx, value);
     // Replace the old value with the new value of the touch position.
+
+    Log.d("TEST14", "newValue = " + newValue);
     values.set(idx, newValue);
     focusedThumbIdx = idx;
 
@@ -1888,6 +1993,8 @@ abstract class BaseSlider<
     if (isRtl()) {
       position = 1 - position;
     }
+    float res = (float) (position * (valueTo - valueFrom) + valueFrom);
+    Log.d("TEST34", "getValueOfTouchPosition() =    (float) (position * (valueTo - valueFrom) + valueFrom  ||  " + "(float) (" + position + " * (" + valueTo + " - " + valueFrom + ") + " + valueFrom + "    = " + res);
     return (float) (position * (valueTo - valueFrom) + valueFrom);
   }
 
@@ -2561,52 +2668,54 @@ abstract class BaseSlider<
 
       switch (action) {
         case android.R.id.accessibilityActionSetProgress:
-          {
-            if (arguments == null
-                || !arguments.containsKey(
-                    AccessibilityNodeInfoCompat.ACTION_ARGUMENT_PROGRESS_VALUE)) {
-              return false;
-            }
-            float value =
-                arguments.getFloat(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_PROGRESS_VALUE);
-            if (slider.snapThumbToValue(virtualViewId, value)) {
-              slider.updateHaloHotspot();
-              slider.postInvalidate();
-              invalidateVirtualView(virtualViewId);
-              return true;
-            }
+        {
+          if (arguments == null
+              || !arguments.containsKey(
+              AccessibilityNodeInfoCompat.ACTION_ARGUMENT_PROGRESS_VALUE)) {
             return false;
           }
+          float value =
+              arguments.getFloat(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_PROGRESS_VALUE);
+          if (slider.snapThumbToValue(virtualViewId, value)) {
+            slider.updateHaloHotspot();
+            slider.postInvalidate();
+            invalidateVirtualView(virtualViewId);
+            return true;
+          }
+          return false;
+        }
         case AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD:
         case AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD:
-          {
-            float increment = slider.calculateStepIncrement(20);
-            if (action == AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD) {
-              increment = -increment;
-            }
-
-            // Swap the increment if we're in RTL.
-            if (slider.isRtl()) {
-              increment = -increment;
-            }
-
-            List<Float> values = slider.getValues();
-            float clamped =
-                clamp(
-                    values.get(virtualViewId) + increment,
-                    slider.getValueFrom(),
-                    slider.getValueTo());
-            if (slider.snapThumbToValue(virtualViewId, clamped)) {
-              slider.updateHaloHotspot();
-              slider.postInvalidate();
-              invalidateVirtualView(virtualViewId);
-              return true;
-            }
-            return false;
+        {
+          float increment = slider.calculateStepIncrement(20);
+          if (action == AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD) {
+            increment = -increment;
           }
+
+          // Swap the increment if we're in RTL.
+          if (slider.isRtl()) {
+            increment = -increment;
+          }
+
+          List<Float> values = slider.getValues();
+          float clamped =
+              clamp(
+                  values.get(virtualViewId) + increment,
+                  slider.getValueFrom(),
+                  slider.getValueTo());
+          if (slider.snapThumbToValue(virtualViewId, clamped)) {
+            slider.updateHaloHotspot();
+            slider.postInvalidate();
+            invalidateVirtualView(virtualViewId);
+            return true;
+          }
+          return false;
+        }
         default:
           return false;
       }
     }
   }
+
+
 }
