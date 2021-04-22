@@ -9,6 +9,8 @@ import com.google.android.material.R;
 import com.google.android.material.slider.BaseOnChangeListener;
 import com.google.android.material.slider.BaseOnSliderTouchListener;
 
+import java.util.List;
+
 public class TickSlider extends BaseTikcSlider<TickSlider, TickSlider.OnChangeListener, TickSlider.OnSliderTouchListener> {
 
   public interface OnChangeListener extends BaseOnChangeListener<TickSlider> {}
@@ -29,6 +31,14 @@ public class TickSlider extends BaseTikcSlider<TickSlider, TickSlider.OnChangeLi
       setValue(a.getFloat(0, 0f));
     }
     a.recycle();
+  }
+
+  public void setSnapValues(List<Float> values) {
+    setPossibleValues(values);
+  }
+
+  public List<Float> getSnapValues() {
+    return getPossibleValues();
   }
 
   public float getValue() {
