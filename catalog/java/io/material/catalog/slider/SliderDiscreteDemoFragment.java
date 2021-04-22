@@ -57,7 +57,7 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     setUpSlider(view, R.id.switch_button_2, R.id.slider_2, null);
     setUpSlider(view, R.id.switch_button_3, R.id.slider_3, null);
     setUpSlider(view, R.id.switch_button_4, R.id.slider_4, new BasicLabelFormatter());
-    setUpSlider3(view, R.id.switch_button_5, R.id.slider_5, null);
+    setUpSlider(view, R.id.switch_button_5, R.id.slider_5, null);
     setUpSlider2(view, R.id.switch_button_6, R.id.slider_6, null);
 
     return view;
@@ -79,29 +79,20 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     slider.setValueFrom(2000f);
     slider.setValueTo(80000f);
 
-    Slider.StepSize range1 = new Slider.StepSize(1000f, 2000f, 15000f);
-    Slider.StepSize range2 = new Slider.StepSize(1000f, 40000f, 60000f);
-    Slider.StepSize range3 = new Slider.StepSize(1000f, 38000f, 80000f);
-
-    List<Slider.StepSize> list = new ArrayList<>();
-    list.add(range1);
-    list.add(range2);
-    list.add(range3);
-
     List<Float> possibleValues = new ArrayList<Float>();
     possibleValues.add(2000f);
     possibleValues.add(3000f);
     possibleValues.add(4000f);
-    /*possibleValues.add(5000f);
+    possibleValues.add(5000f);
     possibleValues.add(6000f);
     possibleValues.add(7000f);
     possibleValues.add(8000f);
     possibleValues.add(10000f);
     possibleValues.add(11000f);
     possibleValues.add(12000f);
-    possibleValues.add(13000f);*/
+    possibleValues.add(13000f);
     possibleValues.add(14000f);
-   /* possibleValues.add(15000f);
+    possibleValues.add(15000f);
 
     possibleValues.add(18000f);
     possibleValues.add(19500f);
@@ -115,11 +106,61 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     possibleValues.add(31500f);
     possibleValues.add(33000f);
     possibleValues.add(35500f);
-    possibleValues.add(37000f);*/
+    possibleValues.add(37000f);
     possibleValues.add(39500f);
     possibleValues.add(41000f);
     possibleValues.add(42500f);
-    possibleValues.add(44000f);
+    possibleValues.add(45000f);
+    possibleValues.add(46000f);
+    possibleValues.add(47000f);
+    possibleValues.add(48000f);
+    possibleValues.add(49000f);
+    possibleValues.add(50000f);
+    possibleValues.add(51000f);
+    possibleValues.add(52000f);
+    possibleValues.add(53000f);
+    possibleValues.add(54000f);
+    possibleValues.add(55000f);
+    possibleValues.add(56000f);
+    possibleValues.add(57000f);
+    possibleValues.add(58000f);
+    possibleValues.add(59000f);
+    possibleValues.add(60000f);
+    possibleValues.add(62000f);
+    possibleValues.add(63000f);
+    possibleValues.add(64000f);
+    possibleValues.add(65000f);
+    possibleValues.add(66000f);
+    possibleValues.add(67000f);
+    possibleValues.add(68000f);
+    possibleValues.add(69000f);
+    possibleValues.add(70000f);
+    possibleValues.add(72000f);
+    possibleValues.add(73000f);
+    possibleValues.add(74000f);
+    possibleValues.add(75000f);
+    possibleValues.add(76000f);
+    possibleValues.add(77000f);
+    possibleValues.add(78000f);
+    possibleValues.add(79000f);
+    possibleValues.add(80000f);
+    possibleValues.add(82000f);
+    possibleValues.add(83000f);
+    possibleValues.add(84000f);
+    possibleValues.add(85000f);
+    possibleValues.add(86000f);
+    possibleValues.add(87000f);
+    possibleValues.add(88000f);
+    possibleValues.add(89000f);
+    possibleValues.add(90000f);
+    possibleValues.add(92000f);
+    possibleValues.add(93000f);
+    possibleValues.add(94000f);
+    possibleValues.add(95000f);
+    possibleValues.add(96000f);
+    possibleValues.add(97000f);
+    possibleValues.add(98000f);
+    possibleValues.add(99000f);
 
     slider.setPossibleValues(possibleValues);
 
@@ -139,16 +180,6 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     slider.setValueFrom(2000f);
     slider.setValueTo(80000f);
 
-    Slider.StepSize range1 = new Slider.StepSize(1000f, 2000f, 15000f);
-    Slider.StepSize range2 = new Slider.StepSize(1000f, 40000f, 60000f);
-    Slider.StepSize range3 = new Slider.StepSize(1000f, 38000f, 80000f);
-
-    List<Slider.StepSize> list = new ArrayList<>();
-    list.add(range1);
-    list.add(range2);
-    list.add(range3);
-
-    slider.setStepSizes(list);
     slider.setLabelFormatter(labelFormatter);
     SwitchCompat switchButton = view.findViewById(switchId);
     switchButton.setOnCheckedChangeListener(
