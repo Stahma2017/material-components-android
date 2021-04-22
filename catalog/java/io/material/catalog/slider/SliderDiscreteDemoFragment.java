@@ -19,15 +19,24 @@ package io.material.catalog.slider;
 import io.material.catalog.R;
 
 import android.os.Bundle;
+
 import androidx.appcompat.widget.SwitchCompat;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.IdRes;
 import androidx.annotation.Nullable;
+
 import com.google.android.material.slider.BasicLabelFormatter;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
+import com.google.android.material.slider.tickslider.TickSlider;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.material.catalog.feature.DemoFragment;
 
 /**
@@ -48,7 +57,7 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     setUpSlider(view, R.id.switch_button_3, R.id.slider_3, null);
     setUpSlider(view, R.id.switch_button_4, R.id.slider_4, new BasicLabelFormatter());
     setUpSlider(view, R.id.switch_button_5, R.id.slider_5, null);
-    setUpSlider(view, R.id.switch_button_6, R.id.slider_6, null);
+    setUpSlider2(view, R.id.switch_button_6, R.id.slider_6, null);
 
     return view;
   }
@@ -56,6 +65,29 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
   private void setUpSlider(
       View view, @IdRes int switchId, @IdRes int sliderId, LabelFormatter labelFormatter) {
     final Slider slider = view.findViewById(sliderId);
+    slider.setLabelFormatter(labelFormatter);
+    SwitchCompat switchButton = view.findViewById(switchId);
+    switchButton.setOnCheckedChangeListener(
+        (buttonView, isChecked) -> slider.setEnabled(isChecked));
+    switchButton.setChecked(true);
+  }
+
+  private void setUpSlider2(
+      View view, @IdRes int switchId, @IdRes int sliderId, LabelFormatter labelFormatter) {
+    final TickSlider slider = view.findViewById(sliderId);
+    slider.setValueFrom(2000f);
+    slider.setValueTo(80000f);
+
+    Slider.StepSize range1 = new Slider.StepSize(1000f, 2000f, 15000f);
+    Slider.StepSize range2 = new Slider.StepSize(1000f, 40000f, 60000f);
+    Slider.StepSize range3 = new Slider.StepSize(1000f, 38000f, 80000f);
+
+    List<Slider.StepSize> list = new ArrayList<>();
+    list.add(range1);
+    list.add(range2);
+    list.add(range3);
+
+    slider.setStepSizes(list);
     slider.setLabelFormatter(labelFormatter);
     SwitchCompat switchButton = view.findViewById(switchId);
     switchButton.setOnCheckedChangeListener(

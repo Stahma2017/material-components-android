@@ -194,7 +194,7 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.SecondaryPalette.Green" />
 
-      <com.google.android.material.slider.Slider
+      <com.google.android.material.slider.tickslider.TickSlider
         android:id="@+id/slider_6"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
