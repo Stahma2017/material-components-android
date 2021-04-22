@@ -22,6 +22,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,7 +57,7 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
     setUpSlider(view, R.id.switch_button_2, R.id.slider_2, null);
     setUpSlider(view, R.id.switch_button_3, R.id.slider_3, null);
     setUpSlider(view, R.id.switch_button_4, R.id.slider_4, new BasicLabelFormatter());
-    setUpSlider(view, R.id.switch_button_5, R.id.slider_5, null);
+    setUpSlider3(view, R.id.switch_button_5, R.id.slider_5, null);
     setUpSlider2(view, R.id.switch_button_6, R.id.slider_6, null);
 
     return view;
@@ -75,6 +76,66 @@ public class SliderDiscreteDemoFragment extends DemoFragment {
   private void setUpSlider2(
       View view, @IdRes int switchId, @IdRes int sliderId, LabelFormatter labelFormatter) {
     final TickSlider slider = view.findViewById(sliderId);
+    slider.setValueFrom(2000f);
+    slider.setValueTo(80000f);
+
+    Slider.StepSize range1 = new Slider.StepSize(1000f, 2000f, 15000f);
+    Slider.StepSize range2 = new Slider.StepSize(1000f, 40000f, 60000f);
+    Slider.StepSize range3 = new Slider.StepSize(1000f, 38000f, 80000f);
+
+    List<Slider.StepSize> list = new ArrayList<>();
+    list.add(range1);
+    list.add(range2);
+    list.add(range3);
+
+    List<Float> possibleValues = new ArrayList<Float>();
+    possibleValues.add(2000f);
+    possibleValues.add(3000f);
+    possibleValues.add(4000f);
+    /*possibleValues.add(5000f);
+    possibleValues.add(6000f);
+    possibleValues.add(7000f);
+    possibleValues.add(8000f);
+    possibleValues.add(10000f);
+    possibleValues.add(11000f);
+    possibleValues.add(12000f);
+    possibleValues.add(13000f);*/
+    possibleValues.add(14000f);
+   /* possibleValues.add(15000f);
+
+    possibleValues.add(18000f);
+    possibleValues.add(19500f);
+    possibleValues.add(21000f);
+    possibleValues.add(22500f);
+    possibleValues.add(24000f);
+    possibleValues.add(25500f);
+    possibleValues.add(27000f);
+    possibleValues.add(28500f);
+    possibleValues.add(30000f);
+    possibleValues.add(31500f);
+    possibleValues.add(33000f);
+    possibleValues.add(35500f);
+    possibleValues.add(37000f);*/
+    possibleValues.add(39500f);
+    possibleValues.add(41000f);
+    possibleValues.add(42500f);
+    possibleValues.add(44000f);
+
+    slider.setPossibleValues(possibleValues);
+
+    Log.d("TEST64", "possible values " + slider.getPossibleValues());
+
+    slider.setLabelFormatter(labelFormatter);
+    SwitchCompat switchButton = view.findViewById(switchId);
+    switchButton.setOnCheckedChangeListener(
+        (buttonView, isChecked) -> slider.setEnabled(isChecked));
+    switchButton.setChecked(true);
+  }
+
+
+  private void setUpSlider3(
+      View view, @IdRes int switchId, @IdRes int sliderId, LabelFormatter labelFormatter) {
+    final Slider slider = view.findViewById(sliderId);
     slider.setValueFrom(2000f);
     slider.setValueTo(80000f);
 

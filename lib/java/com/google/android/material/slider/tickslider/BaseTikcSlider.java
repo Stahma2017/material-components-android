@@ -134,16 +134,7 @@ abstract class BaseTikcSlider<
   @NonNull private final List<TooltipDrawable> labels = new ArrayList<>();
   @NonNull private final List<L> changeListeners = new ArrayList<>();
   @NonNull private final List<T> touchListeners = new ArrayList<>();
-
-
-
-
-
-
-  //@NonNull private Set<Float> allPossibleValues = new HashSet<Float>();
   @NonNull private final List<Float> possibleValues = new ArrayList();
-
- // @NonNull private final List<Slider.StepSize> stepSizes = new ArrayList<>();
 
   // Whether the labels are showing or in the process of animating in.
   private boolean labelsAreAnimatedIn = false;
@@ -170,8 +161,6 @@ abstract class BaseTikcSlider<
   private float valueFrom;
   private float valueTo;
 
- // private boolean valueFromInitialised;
- // private boolean valueToInitialised;
   // Holds the values set to this slider. We keep this array sorted in order to check if the value
   // has been changed when a new value is set and to find the minimum and maximum values.
   private ArrayList<Float> values = new ArrayList<>();
@@ -192,9 +181,6 @@ abstract class BaseTikcSlider<
   @NonNull private ColorStateList tickColorInactive;
   @NonNull private ColorStateList trackColorActive;
   @NonNull private ColorStateList trackColorInactive;
-
-
-  private double lastPosition = valueFrom;
 
   @NonNull private final MaterialShapeDrawable thumbDrawable = new MaterialShapeDrawable();
 
@@ -312,9 +298,9 @@ abstract class BaseTikcSlider<
     TypedArray a =
         ThemeEnforcement.obtainStyledAttributes(
             context, attrs, R.styleable.Slider, defStyleAttr, DEF_STYLE_RES);
-    /*valueFrom = a.getFloat(R.styleable.Slider_android_valueFrom, 0.0f);
-    valueTo = a.getFloat(R.styleable.Slider_android_valueTo, 1.0f);*/
-    // setValues(valueFrom);
+    valueFrom = a.getFloat(R.styleable.Slider_android_valueFrom, 0.0f);
+    valueTo = a.getFloat(R.styleable.Slider_android_valueTo, 1.0f);
+    setValues(valueFrom);
     stepSize = a.getFloat(R.styleable.Slider_android_stepSize, 0.0f);
 
     boolean hasTrackColor = a.hasValue(R.styleable.Slider_trackColor);
@@ -411,7 +397,6 @@ abstract class BaseTikcSlider<
   }
 
   private void validateValueFrom() {
-    if (!valueFromInitialised) return;
     if (valueFrom >= valueTo) {
       throw new IllegalStateException(
           String.format(
@@ -420,7 +405,6 @@ abstract class BaseTikcSlider<
   }
 
   private void validateValueTo() {
-    if (!valueToInitialised) return;
     if (valueTo <= valueFrom) {
       throw new IllegalStateException(
           String.format(
@@ -453,7 +437,6 @@ abstract class BaseTikcSlider<
   }
 
   private void validateValues() {
-    if (!valueFromInitialised || !valueToInitialised) return;
     for (Float value : values) {
       if (value < valueFrom || value > valueTo) {
         throw new IllegalStateException(
@@ -528,10 +511,8 @@ abstract class BaseTikcSlider<
   public void setValueFrom(float valueFrom) {
     setValues(valueFrom);
     this.valueFrom = valueFrom;
-    valueFromInitialised = true;
     dirtyConfig = true;
     postInvalidate();
-
   }
 
   /**
@@ -556,7 +537,6 @@ abstract class BaseTikcSlider<
    */
   public void setValueTo(float valueTo) {
     this.valueTo = valueTo;
-    valueToInitialised = true;
     dirtyConfig = true;
     postInvalidate();
   }
@@ -708,38 +688,18 @@ abstract class BaseTikcSlider<
     }
   }
 
-  public void setStepSizes(List<Slider.StepSize> list) {
-    stepSizes.clear();
-    stepSizes.addAll(list);
-    calculateAllPossibleValues(list);
-  }
-
   public void setPossibleValues(List<Float> list) {
+    List<Float> valuesWithoutDuplicates = new ArrayList<>(new HashSet(list));
+    Collections.sort(valuesWithoutDuplicates);
     this.possibleValues.clear();
-    this.possibleValues.addAll(list);
-    //make check on uniqeness
+    this.possibleValues.addAll(valuesWithoutDuplicates);
+    setValueFrom(possibleValues.get(0));
+    setValueTo(possibleValues.get(possibleValues.size() - 1));
   }
 
-  private void calculateAllPossibleValues(List<Slider.StepSize> list) {
-    Set<Float> hashSet = new HashSet<Float>();
-    for (Slider.StepSize step : list) {
-      hashSet.add(step.maxValueOfRange);
-      float i = step.minValueOfRange;
-      do {
-        hashSet.add(i);
-        i = i + step.stepSize;
-      }
-      while (i < step.maxValueOfRange);
-    }
-
-    allPossibleValues = hashSet;
+  public List<Float> getPossibleValues() {
+    return possibleValues;
   }
-
-  public List<Slider.StepSize> getStepSizes() {
-    return stepSizes;
-  }
-
-
 
   /** Returns the index of the currently focused thumb */
   public int getFocusedThumbIndex() {
@@ -1016,7 +976,6 @@ abstract class BaseTikcSlider<
       DrawableUtils.setRippleDrawableRadius((RippleDrawable) background, haloRadius);
       return;
     }
-
     postInvalidate();
   }
 
@@ -1450,7 +1409,6 @@ abstract class BaseTikcSlider<
   }
 
   private void updateHaloHotspot() {
-    if (!valueFromInitialised || !valueToInitialised) return;
     // Set the hotspot as the halo if RippleDrawable is being used.
     if (!shouldDrawCompatHalo() && getMeasuredWidth() > 0) {
       final Drawable background = getBackground();
@@ -1470,7 +1428,6 @@ abstract class BaseTikcSlider<
 
   @Override
   protected void onDraw(@NonNull Canvas canvas) {
-    if (!valueFromInitialised || !valueToInitialised) return;
     if (dirtyConfig) {
       validateConfigurationIfDirty();
 
@@ -1516,7 +1473,6 @@ abstract class BaseTikcSlider<
   }
 
   private void drawInactiveTrack(@NonNull Canvas canvas, int width, int top) {
-    if (!valueFromInitialised || !valueToInitialised) return;
     float[] activeRange = getActiveRange();
     float right = trackSidePadding + activeRange[1] * width;
     if (right < trackSidePadding + width) {
@@ -1543,7 +1499,6 @@ abstract class BaseTikcSlider<
   }
 
   private void drawActiveTrack(@NonNull Canvas canvas, int width, int top) {
-    if (!valueFromInitialised || !valueToInitialised) return;
     float[] activeRange = getActiveRange();
     float right = trackSidePadding + activeRange[1] * width;
     float left = trackSidePadding + activeRange[0] * width;
@@ -1585,8 +1540,6 @@ abstract class BaseTikcSlider<
         canvas.drawCircle(trackSidePadding + normalizeValue(value) * width, top, thumbRadius, thumbPaint);
       }
     }
-
-
 
     for (Float value : values) {
       canvas.save();
@@ -1717,91 +1670,6 @@ abstract class BaseTikcSlider<
     return Math.round(position * (coordinates.length / 2 - 1));
   }
 
-  private double snapPositionLog(float position) {
-    Log.d("TEST24", "\n \n \n \n \n");
-    Log.d("TEST24", "touchPosition = " + position);
-    if (stepSize > 0.0f) {
-      int stepCount = (int) ((valueTo - valueFrom) / stepSize);
-      Log.d("TEST24", "stepCount = (int) (valueTo - valueFrom) / stepSize  || (" + valueTo + " - " + valueFrom + ") / "+ stepSize + "   = " + stepCount);
-      double res = Math.round(position * stepCount) / (double) stepCount;
-      Log.d("TEST24", "rounded result = Math.round(position * stepCount) / (double) stepCount   |||  " +
-          "Math.round(" + position + " * " + stepCount + ") / (double) " + stepCount + "   || " + Math.round(position * stepCount) + " / (double) " + stepCount + "    = " + res);
-      return res;
-    }
-
-    return position;
-  }
-
-
-  private double snapPosition(float position) {
-    if (!stepSizes.isEmpty()) {
-      return snapPosition2(position);
-    }
-    else if (stepSize > 0.0f) {
-      int stepCount = (int) ((valueTo - valueFrom) / stepSize);
-      return Math.round(position * stepCount) / (double) stepCount;
-    }
-
-    return position;
-  }
-
-  private double snapPosition2(float position) {
-    Log.d("TEST34", "\n \n \n \n \n");
-
-    if (stepSizes.isEmpty()) return position;
-    List<Double> snappedPositions = new ArrayList<>();
-
-    // подсчитали все соседние возможные snap positions в подхоядщих рэнжах
-    for (int i = 0; i < stepSizes.size(); i++) {
-      Slider.StepSize step = stepSizes.get(i);
-
-      Float positionValue = (position * (valueTo - valueFrom)) + valueFrom;
-
-      if (positionValue >= step.minValueOfRange && positionValue <= step.maxValueOfRange) {
-        Log.d("TEST34", "range:   " + step.minValueOfRange +" <= " + positionValue + " <= " + step.maxValueOfRange);
-
-        int stepCount = (int) ((step.maxValueOfRange - step.minValueOfRange) / step.stepSize);
-        Log.d("TEST34", "stepCount = (int) (step.maxValueOfRange - step.minValueOfRange) / step.stepSize  || (" + step.maxValueOfRange + " - " + step.minValueOfRange + ") / "+ step.stepSize + "   = " + stepCount);
-
-        float localPosition = (positionValue - valueFrom) / (step.maxValueOfRange - step.minValueOfRange);
-        Log.d("TEST34", "localPosition= positionValue / (step.maxValueOfRange - step.minValueOfRange)  ||  " + positionValue + " / (" + step.maxValueOfRange + " - " +  step.minValueOfRange + ")" +  "   = " + localPosition);
-
-        Double snapPosition = Math.round(localPosition * stepCount) / (double) stepCount;
-        Log.d("TEST34", "snapPosition= " + snapPosition);
-
-        Double globalSnapPosition = (snapPosition * (step.maxValueOfRange - step.minValueOfRange))/(valueTo - valueFrom);
-        Log.d("TEST34", "global snapPosition = " + globalSnapPosition);
-        snappedPositions.add(globalSnapPosition);
-      }
-    }
-
-    Log.d("TEST34", "snapped Positions = " + snappedPositions);
-
-    if (snappedPositions.isEmpty()) return lastPosition;
-
-    double closestPosition = snappedPositions.get(0);
-    for (int i = 0; i < snappedPositions.size(); i++) {
-      if (abs(snappedPositions.get(i) - position) < closestPosition) {
-        closestPosition = snappedPositions.get(i);
-      }
-    }
-
-
-    Log.d("TEST34", "closestPosition=" + closestPosition);
-    lastPosition = closestPosition;
-    return closestPosition;
-  }
-
-  /*private float correctSnapValue(float value) {
-    if (allPossibleValues.isEmpty()) return value;
-    float correctValue = Float.MAX_VALUE;
-    for (float x: allPossibleValues) {
-      if (abs(value - x) < abs(value - correctValue)) {
-        correctValue = x;
-      }
-    }
-    return correctValue;
-  }*/
 
   /**
    * Tries to pick the active thumb if one hasn't already been set. This will pick the closest thumb
@@ -1917,24 +1785,9 @@ abstract class BaseTikcSlider<
   }
 
   private float getValueOfTouchPosition() {
-    Log.d("TEST54", "touch position = " + touchPosition);
-
-
-    Float positionValue = (touchPosition * (valueTo - valueFrom)) + valueFrom;
+    float positionValue = (touchPosition * (valueTo - valueFrom)) + valueFrom;
     int snapIndex = binarySearch(possibleValues, positionValue);
-    Float snapValue = possibleValues.get(snapIndex);
-
-
-    //double position = snapPosition(touchPosition);
-    // We might need to invert the touch position to get the correct value.
-    /*if (isRtl()) {
-      position = 1 - position;
-    }*/
-   // float res = (float) (position * (valueTo - valueFrom) + valueFrom);
-
-   // float correctedRes = correctSnapValue(res);
-
-    return snapValue;
+    return possibleValues.get(snapIndex);
   }
 
   private float valueToX(float value) {
@@ -1947,7 +1800,7 @@ abstract class BaseTikcSlider<
     int lastIndex = arr.size() - 1;
 
     // termination condition (element isn't present)
-    while(lastIndex - firstIndex == 1) {
+    while(lastIndex - firstIndex != 1) {
       int middleIndex = (firstIndex + lastIndex) / 2;
       // if the middle element is our goal element, return its index
       if (arr.get(middleIndex) == elementToSearch) {
