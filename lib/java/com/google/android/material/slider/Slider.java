@@ -104,17 +104,4 @@ public class Slider extends BaseSlider<Slider, OnChangeListener, OnSliderTouchLi
     setActiveThumbIndex(0);
     return true;
   }
-
-
-  public static class StepSize {
-    public Float stepSize;
-    public Float minValueOfRange;
-    public Float maxValueOfRange;
-
-    public StepSize(Float stepSize, Float minValueOfRange, Float maxValueOfRange) {
-      this.stepSize = stepSize;
-      this.minValueOfRange = minValueOfRange;
-      this.maxValueOfRange = maxValueOfRange;
-    }
-  }
 }
